@@ -1102,6 +1102,48 @@ def test_stress_answer_returns_only_to_the_requesting_socket(tmp_path, monkeypat
     assert other.sent == []
 
 
+def test_pick_answer_returns_only_to_the_requesting_socket(tmp_path):
+    server = project(tmp_path)
+    server.queue = asyncio.Queue()
+    # Rebuild leaves a shape in state; pick resolves against that solid.
+    entry = server.rebuild(tmp_path / "parts" / "thing.py")
+    assert entry and entry.get("shape") is not None
+
+    class Client:
+        def __init__(self):
+            self.sent = []
+
+        async def send(self, text):
+            self.sent.append(json.loads(text))
+
+    requester, other = Client(), Client()
+    server.clients.update((requester, other))
+    from nurb import probe
+    from nurb.checks import Context
+
+    rows, _ = probe.faces(entry["shape"], Context())
+    center = rows[0]["center"]
+
+    asyncio.run(
+        server.command(
+            json.dumps(
+                {
+                    "type": "pick",
+                    "name": "thing",
+                    "mode": "face",
+                    "at": [center.X, center.Y, center.Z],
+                }
+            ),
+            requester,
+        )
+    )
+
+    assert requester.sent[-1]["type"] == "picked"
+    assert requester.sent[-1]["mode"] == "face"
+    assert "face I selected" in requester.sent[-1]["reference"]
+    assert other.sent == []
+
+
 def test_viewer_discards_stress_coordinates_when_geometry_changes():
     from nurb import server as server_mod
 
@@ -1112,6 +1154,24 @@ def test_viewer_discards_stress_coordinates_when_geometry_changes():
 
     assert "stressAim(e, true);" in landed
     assert "stressAim(entry, true);" in painted
+
+
+def test_the_viewer_has_a_select_mode_that_picks_for_chat():
+    """Select is a surface, not a CLI: face/edge/point clicks resolve for chat."""
+    from nurb import server as server_mod
+
+    viewer = server_mod.VIEWER.read_text(encoding="utf-8")
+    assert 'id="selectbtn"' in viewer
+    assert 'id="selectpill"' in viewer
+    assert "type: 'pick'" in viewer
+    assert "type: 'nurb:pick'" in viewer
+    assert "nurb:pick_clear" in viewer
+    assert "selectAfterPaint" in viewer
+    assert "selectOff()" in viewer  # mutually exclusive with stress
+    # Hover is a client-side aim cue so the cursor shows what a click would name.
+    assert "function paintHover" in viewer
+    assert "hoverFaceTriangles" in viewer
+    assert "hoverGlowMat" in viewer
 
 
 def test_the_viewer_carries_a_print_estimate_and_never_a_stale_one():

@@ -15,6 +15,7 @@ import { IconChevronDown, IconMessagePlus, IconPaperclip } from "./Icons";
 import Markdown from "./Markdown";
 import { playChime, shouldPlayCompletionChime } from "./chime";
 import { AttachmentDraft, restoreDraftText } from "./chatDraft";
+import { mergePickReference } from "./pickReference";
 
 // The whole-project conversation rides the per-part plumbing under a name no part
 // file can have. Twins live in App.tsx's mount and acp.rs's context line.
@@ -139,6 +140,10 @@ function Chat({
   hidden,
   seed,
   onSeed,
+  pickReference,
+  pickSummary,
+  onClearPick,
+  onPickConsumed,
   onSession,
   onFresh,
   onAgent,
@@ -160,6 +165,12 @@ function Chat({
   // is visible, never sent; onSeed reports it landed so the owner clears it.
   seed?: string | null;
   onSeed?: () => void;
+  // Geometry the viewer selected for this part. Prefixed onto the next send; the
+  // chip above the composer mirrors the viewer's selection pill.
+  pickReference?: string | null;
+  pickSummary?: string | null;
+  onClearPick?: () => void;
+  onPickConsumed?: () => void;
   onSession: (id: string) => void;
   onFresh: () => void;
   // Switching agents cannot move a conversation across two different session
@@ -217,6 +228,8 @@ function Chat({
   onSessionRef.current = onSession;
   const onBusyRef = useRef(onBusy);
   onBusyRef.current = onBusy;
+  const onPickConsumedRef = useRef(onPickConsumed);
+  onPickConsumedRef.current = onPickConsumed;
 
   useEffect(() => {
     // A removed column cannot leave a stale rail dot behind. Turn transitions
@@ -497,7 +510,7 @@ function Chat({
   }, [resume, restoreSession]);
 
   const send = useCallback(
-    async (text: string, files: string[]) => {
+    async (text: string, files: string[], restoreDraft?: string) => {
       sendingRef.current = true;
       const startedAt = Date.now();
       const localId = nextLocalIdRef.current++;
@@ -523,16 +536,21 @@ function Chat({
           attachments: files,
         });
         completed = true;
+        onPickConsumedRef.current?.();
       } catch (e) {
         const message = String(e);
         if (message.includes("auth_required")) {
-          // Nothing was sent. Restore it ahead of any next draft composed
-          // during the turn, and keep both turns' attachments.
+          // Nothing was sent. Restore the typed draft only: the geometry pick
+          // chip is still pending, and putting the reference into the box would
+          // duplicate it on the next send.
           setItems((list) =>
             list.filter((item) => item.kind !== "user" || item.localId !== localId),
           );
           if (inputRef.current) {
-            inputRef.current.value = restoreDraftText(text, inputRef.current.value);
+            inputRef.current.value = restoreDraftText(
+              restoreDraft ?? text,
+              inputRef.current.value,
+            );
           }
           attachmentDraft.restore(files);
           setAuthNeeded("resend");
@@ -555,10 +573,12 @@ function Chat({
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const box = inputRef.current;
-    const text = box?.value.trim() ?? "";
+    const typed = box?.value.trim() ?? "";
+    const text = mergePickReference(pickReference, typed);
     // sendingRef, not busy: two Enters in one tick both read the stale state,
     // and a double send would spawn a second adapter. A photo alone is a
-    // legitimate message ("model this"), so attachments count as content.
+    // legitimate message ("model this"), so attachments count as content. A
+    // geometry pick with no typed words is also a message.
     if (
       (!text && !attachmentDraft.hasContent) ||
       sendingRef.current ||
@@ -575,7 +595,7 @@ function Chat({
       sendingRef.current = false;
       return;
     }
-    send(text, files);
+    send(text, files, typed);
   };
 
   const attach = async () => {
@@ -882,6 +902,21 @@ function Chat({
         className={dropping ? "chat-composer dropping" : "chat-composer"}
         onSubmit={submit}
       >
+        {pickSummary && (
+          <div className="chat-pick">
+            <span className="chat-pick-summary" title={pickReference ?? pickSummary}>
+              {pickSummary}
+            </span>
+            <button
+              type="button"
+              className="chat-pick-clear"
+              aria-label="clear selection"
+              onClick={() => onClearPick?.()}
+            >
+              clear
+            </button>
+          </div>
+        )}
         {attachments.length > 0 && (
           <div className="chat-attachments">
             {attachments.map((path) => (

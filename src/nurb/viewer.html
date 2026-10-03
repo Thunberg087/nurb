@@ -186,6 +186,17 @@
   #stressrow button { padding: 4px 6px; color: var(--dim); background: none; border: none; }
   #stressrow button:hover { color: var(--text); }
   #stressrow #stressgo { color: var(--accent); background: rgba(110,231,168,.1); border-radius: 6px; padding: 3px 10px; }
+  /* Select mode: face / edge / point, then a persistent pill naming what is held for chat. */
+  #selectrow { display: none; align-items: center; gap: 4px; padding: 5px 11px; font-size: 11px; }
+  #selectrow.open { display: flex; }
+  #selectrow button { padding: 3px 10px; }
+  #selectpill { display: none; align-items: center; gap: 8px; padding: 5px 11px; font-size: 11px; max-width: min(420px, 70vw); }
+  #selectpill.open { display: flex; }
+  #selectpill .sum { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #selectpill .acts { display: flex; align-items: center; gap: 4px; flex: none; }
+  #selectpill button { padding: 3px 8px; color: var(--dim); background: none; border: none; cursor: pointer; font: inherit; font-size: 11px; }
+  #selectpill button:hover { color: var(--text); }
+  #selectpill #selectclear { color: var(--accent); background: rgba(110,231,168,.1); border-radius: 6px; }
   /* The picking instruction floats centered over the canvas, where the click is about
      to happen, the way AR measure tools prompt. The corner pill is too far from the
      action to be read at the moment it matters. */
@@ -217,6 +228,7 @@
   body.nogl #sectionbtn, body.nogl .sep:has(+ #sectionbtn), body.nogl #reframe { display: none; }
   body.nogl #pinsbtn, body.nogl .sep:has(+ #pinsbtn) { display: none; }
   body.nogl #stressbtn, body.nogl .sep:has(+ #stressbtn), body.nogl #stressrow { display: none; }
+  body.nogl #selectbtn, body.nogl .sep:has(+ #selectbtn), body.nogl #selectrow, body.nogl #selectpill { display: none; }
   #checks {
     position: absolute; top: 14px; left: 16px; max-width: 46%; max-height: 60%;
     overflow: auto; display: none; font-size: 11px; line-height: 1.6;
@@ -514,6 +526,7 @@
   <symbol id="i-variant" viewBox="0 0 12 12"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><line x1="11.25" y1="8.75" x2="6.25" y2="8.75"/><circle cx="4.25" cy="8.75" r="2"/><line x1="2.25" y1="8.75" x2=".75" y2="8.75"/><line x1=".75" y1="3.25" x2="5.75" y2="3.25"/><circle cx="7.75" cy="3.25" r="2"/><line x1="9.75" y1="3.25" x2="11.25" y2="3.25"/></g></symbol>
   <symbol id="i-cubes" viewBox="0 0 18 18"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M4.648,8.086l-2.55,1.479c-.37,.215-.598,.61-.598,1.038v2.968c0,.428,.228,.823,.598,1.038l2.55,1.479c.372,.216,.832,.216,1.204,0l2.55-1.479c.37-.215,.598-.61,.598-1.038v-2.968c0-.428-.228-.823-.598-1.038l-2.55-1.479c-.372-.216-.832-.216-1.204,0Z"/><polyline points="8.84 10.005 5.25 12.087 1.66 10.005"/><line x1="5.25" y1="16.25" x2="5.25" y2="12.087"/><path d="M12.148,8.086l-2.55,1.479c-.37,.215-.598,.61-.598,1.038v2.968c0,.428,.228,.823,.598,1.038l2.55,1.479c.372,.216,.832,.216,1.204,0l2.55-1.479c.37-.215,.598-.61,.598-1.038v-2.968c0-.428-.228-.823-.598-1.038l-2.55-1.479c-.372-.216-.832-.216-1.204,0Z"/><polyline points="16.34 10.005 12.75 12.087 9.16 10.005"/><line x1="12.75" y1="16.25" x2="12.75" y2="12.087"/><path d="M8.398,1.586l-2.55,1.479c-.37,.215-.598,.61-.598,1.038v2.968c0,.428,.228,.823,.598,1.038l2.55,1.479c.372,.216,.832,.216,1.204,0l2.55-1.479c.37-.215,.598-.61,.598-1.038v-2.968c0-.428-.228-.823-.598-1.038l-2.55-1.479c-.372-.216-.832-.216-1.204,0Z"/><polyline points="12.59 3.505 9 5.587 5.41 3.505"/><line x1="9" y1="9.75" x2="9" y2="5.587"/></g></symbol>
   <symbol id="i-stress" viewBox="0 0 12 12"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><line x1="6" y1="1.25" x2="6" y2="5.5"/><polyline points="3.9 3.65 6 5.75 8.1 3.65"/><line x1="1.75" y1="8.5" x2="10.25" y2="8.5"/><line x1="3.4" y1="8.5" x2="1.9" y2="10.75"/><line x1="8.6" y1="8.5" x2="10.1" y2="10.75"/></g></symbol>
+  <symbol id="i-select" viewBox="0 0 12 12"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M2.25 1.75l7.5 4.1-3.35.95-.95 3.35z"/><path d="M6.4 6.8l2.35 2.45"/></g></symbol>
   <symbol id="i-chev" viewBox="0 0 12 12"><polyline points="3 4.75 6 7.75 9 4.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
   <symbol id="i-pin" viewBox="0 0 12 12"><path d="M6 .75c-2.35 0-4.25 1.87-4.25 4.18 0 3.07 4.25 6.32 4.25 6.32s4.25-3.25 4.25-6.32C10.25 2.62 8.35.75 6 .75Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><circle cx="6" cy="4.9" r="1.4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
   <symbol id="i-clock" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><polyline points="6 3 6 6 8.25 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol>
@@ -576,6 +589,8 @@
       <span class="sep"></span>
       <button id="stressbtn" title="where a weight stresses the part: click where it presses, then where the part attaches to the wall or desk"><svg><use href="#i-stress"/></svg><span>stress</span></button>
       <span class="sep"></span>
+      <button id="selectbtn" title="point at a face, edge, or spot so chat can refer to it"><svg><use href="#i-select"/></svg><span>select</span></button>
+      <span class="sep"></span>
       <button id="pinsbtn" class="on" title="hide the finding markers to see what they cover; the checks stay on"><svg><use href="#i-pin"/></svg><span>pins</span></button>
       <span class="sep" id="ghostsep" style="display:none"></span>
       <button id="ghostbtn" style="display:none" title="show or hide the target mesh this part is remodelling"><svg><use href="#i-cube"/></svg><span>target</span></button>
@@ -592,6 +607,18 @@
       <span id="stressmsg" class="msg"></span>
       <button id="stressgo" style="display:none">go</button>
       <button id="stressredo" title="pick the spots again"><svg><use href="#i-reset"/></svg></button>
+    </div>
+    <div class="pill" id="selectrow">
+      <button type="button" data-mode="face" class="on" title="click a face">face</button>
+      <button type="button" data-mode="edge" title="click near an edge">edge</button>
+      <button type="button" data-mode="point" title="click a spot on the surface">point</button>
+    </div>
+    <div class="pill" id="selectpill">
+      <span class="sum" id="selectsum"></span>
+      <span class="acts">
+        <button type="button" id="selectcopy" title="copy the reference for chat" style="display:none">copy</button>
+        <button type="button" id="selectclear" title="clear this selection">clear</button>
+      </span>
     </div>
     <div class="pill" id="cut">
       <button data-axis="x">x</button>
@@ -1396,6 +1423,8 @@ document.getElementById('ghostbtn').classList.toggle('on', ghostWanted);
 // old picks, aims the new shape, and solves again instead of painting a stale map.
 let stressOn = false, stressFor = null, stressLoad = null, stressHolds = [];
 let stressBusy = false, stressSaid = null;
+// Declared here so stressCursor can share the crosshair with select mode below.
+let selectOn = false;
 const stressMarks = new THREE.Group();
 scene.add(stressMarks);
 const stressLoadMat = new THREE.MeshBasicMaterial({ color: 0xe8734a, depthTest: false, depthWrite: false });
@@ -1416,7 +1445,8 @@ function stressMsg(html, cls) {
 function stressPicking() { return stressOn && !stressBusy && !stressSaid; }
 
 function stressCursor() {
-  main.style.cursor = stressPicking() ? 'crosshair' : '';
+  // Select mode and stress re-pick both need a crosshair; everything else restores.
+  main.style.cursor = (stressPicking() || selectOn) ? 'crosshair' : '';
 }
 
 // Card coordinates belong to one geometry. A rebuild can keep the use case's weight
@@ -1606,6 +1636,7 @@ function stressAfterPaint(name, entry) {
 
 document.getElementById('stressbtn').onclick = ev => {
   if (stressOn) { stressOff(); return; }
+  selectOff();
   stressOn = true;
   stressFor = current;
   ev.currentTarget.classList.add('on');
@@ -1700,7 +1731,354 @@ if (renderer) {
     markStress();
     stressPrompt();
   });
+
+  // Select mode: click names a face, edge, or point for chat. Same 5px gate as stress.
+  let selectDown = null;
+  renderer.domElement.addEventListener('pointerdown', e => {
+    if (!selectOn || selectBusy) return;
+    selectDown = [e.clientX, e.clientY];
+  });
+  renderer.domElement.addEventListener('pointerup', e => {
+    if (!selectOn || selectBusy || !mesh || !sock || sock.readyState !== WebSocket.OPEN) return;
+    if (!selectDown || Math.hypot(e.clientX - selectDown[0], e.clientY - selectDown[1]) > 5) return;
+    aim(e);
+    const hit = partHit();
+    if (!hit) return;
+    const p = hit.point.clone().sub(mesh.position);
+    selectBusy = true;
+    clearHover();
+    stressCursor();
+    sock.send(JSON.stringify({
+      type: 'pick', name: current, mode: selectMode,
+      at: [p.x, p.y, p.z],
+    }));
+  });
+  // Hover preview is client-side so it stays under the cursor without a round trip.
+  // The click still resolves the B-rep on the server; this is only the aim cue.
+  renderer.domElement.addEventListener('pointermove', e => {
+    if (!selectOn || selectBusy || !mesh) return;
+    if (e.buttons) { clearHover(); return; }  // orbiting: do not paint under a drag
+    aim(e);
+    const hit = partHit();
+    if (!hit) { clearHover(); return; }
+    paintHover(hit);
+  });
+  renderer.domElement.addEventListener('pointerleave', () => { if (selectOn) clearHover(); });
 }
+
+// ---- select ----
+// Point at a face, edge, or spot so the desktop chat (or a copied reference) can name
+// it with numbers. Resolved on the server against the B-rep; the highlight here is
+// only a confirmation. One selection at a time; a rebuild clears a stale pick.
+// Hover paints a lighter preview from the GLB hit so the aim cue is immediate; the
+// committed selection still comes from the server and replaces that preview on click.
+let selectMode = 'face', selectBusy = false, currentPick = null;
+const refGroup = new THREE.Group();
+const hoverGroup = new THREE.Group();
+scene.add(refGroup);
+scene.add(hoverGroup);
+const selectGlowMat = new THREE.MeshBasicMaterial({
+  color: 0x5eead4, transparent: true, opacity: 0.45, side: THREE.DoubleSide,
+  polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+  depthWrite: false, clippingPlanes: [plane],
+});
+const hoverGlowMat = new THREE.MeshBasicMaterial({
+  color: 0x5eead4, transparent: true, opacity: 0.22, side: THREE.DoubleSide,
+  polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+  depthWrite: false, clippingPlanes: [plane],
+});
+const selectLineMat = new THREE.LineBasicMaterial({
+  color: 0x5eead4, depthTest: false, depthWrite: false,
+});
+const hoverLineMat = new THREE.LineBasicMaterial({
+  color: 0x5eead4, transparent: true, opacity: 0.55, depthTest: false, depthWrite: false,
+});
+const selectPointMat = new THREE.MeshBasicMaterial({
+  color: 0x5eead4, depthTest: false, depthWrite: false,
+});
+const hoverPointMat = new THREE.MeshBasicMaterial({
+  color: 0x5eead4, transparent: true, opacity: 0.55, depthTest: false, depthWrite: false,
+});
+
+let hoverKey = null;  // skip rebuilds while the cursor stays on the same face/edge
+
+function clearGroup(group) {
+  for (const c of group.children) {
+    if (c.geometry && c.geometry !== pinGeom) c.geometry.dispose();
+  }
+  group.clear();
+}
+
+function clearPickHighlight() { clearGroup(refGroup); }
+function clearHover() { hoverKey = null; clearGroup(hoverGroup); }
+
+function clearPick() {
+  currentPick = null;
+  selectBusy = false;
+  clearPickHighlight();
+  clearHover();
+  const pill = document.getElementById('selectpill');
+  pill.classList.remove('open');
+  document.getElementById('selectsum').textContent = '';
+  stressCursor();
+}
+
+function selectOff() {
+  selectOn = false;
+  document.getElementById('selectbtn').classList.remove('on');
+  document.getElementById('selectrow').classList.remove('open');
+  clearPick();
+}
+
+// Geometry verts live in a child node's local space (joints pose that node). Hover
+// highlights ride hoverGroup at mesh.position, so convert into the same part space
+// the stress/select click path uses: world minus the plate shift.
+function hoverToPart(x, y, z, object) {
+  const v = new THREE.Vector3(x, y, z).applyMatrix4(object.matrixWorld);
+  v.sub(mesh.position);
+  return v;
+}
+
+// Connected coplanar triangles under a ray hit: the GLB has no B-rep face ids, so
+// this is a tessellation preview of "this face", good enough to aim before the
+// server names it. Normals within ~8 deg and a shared edge keep the walk on one face.
+function hoverFaceTriangles(hit) {
+  const geom = hit.object.geometry;
+  const idx = geom.index;
+  const pos = geom.attributes.position;
+  if (!pos || hit.faceIndex === undefined || hit.faceIndex === null) return null;
+  const triCount = idx ? idx.count / 3 : pos.count / 3;
+  const corner = (t, k) => {
+    const i = idx ? idx.getX(t * 3 + k) : t * 3 + k;
+    return [pos.getX(i), pos.getY(i), pos.getZ(i)];
+  };
+  const key = (a, b) => {
+    const A = a[0] < b[0] || (a[0] === b[0] && (a[1] < b[1] || (a[1] === b[1] && a[2] <= b[2]))) ? a : b;
+    const B = A === a ? b : a;
+    return `${A[0]},${A[1]},${A[2]}|${B[0]},${B[1]},${B[2]}`;
+  };
+  const normalOf = t => {
+    const a = corner(t, 0), b = corner(t, 1), c = corner(t, 2);
+    const abx = b[0] - a[0], aby = b[1] - a[1], abz = b[2] - a[2];
+    const acx = c[0] - a[0], acy = c[1] - a[1], acz = c[2] - a[2];
+    const nx = aby * acz - abz * acy, ny = abz * acx - abx * acz, nz = abx * acy - aby * acx;
+    const len = Math.hypot(nx, ny, nz) || 1;
+    return [nx / len, ny / len, nz / len];
+  };
+  const edgeMap = new Map();
+  for (let t = 0; t < triCount; t++) {
+    const verts = [corner(t, 0), corner(t, 1), corner(t, 2)];
+    for (let e = 0; e < 3; e++) {
+      const k = key(verts[e], verts[(e + 1) % 3]);
+      let list = edgeMap.get(k);
+      if (!list) edgeMap.set(k, list = []);
+      list.push(t);
+    }
+  }
+  const seed = hit.faceIndex;
+  const seedN = normalOf(seed);
+  const keep = new Set([seed]);
+  const queue = [seed];
+  while (queue.length) {
+    const t = queue.pop();
+    const verts = [corner(t, 0), corner(t, 1), corner(t, 2)];
+    for (let e = 0; e < 3; e++) {
+      for (const n of edgeMap.get(key(verts[e], verts[(e + 1) % 3])) || []) {
+        if (keep.has(n)) continue;
+        const nn = normalOf(n);
+        if (seedN[0] * nn[0] + seedN[1] * nn[1] + seedN[2] * nn[2] < 0.99) continue;
+        keep.add(n);
+        queue.push(n);
+      }
+    }
+  }
+  const out = [];
+  hit.object.updateMatrixWorld(true);
+  for (const t of keep) {
+    for (let k = 0; k < 3; k++) {
+      const [x, y, z] = corner(t, k);
+      const v = hoverToPart(x, y, z, hit.object);
+      out.push(v.x, v.y, v.z);
+    }
+  }
+  return out;
+}
+
+function hoverEdgeLine(hit) {
+  // Closest of the three triangle edges to the hit: a tessellation stand-in for the
+  // B-rep edge the click will name. Good enough to aim; the committed line comes later.
+  const face = hit.face;
+  const geom = hit.object.geometry;
+  const pos = geom.attributes.position;
+  if (!face || !pos) return null;
+  hit.object.updateMatrixWorld(true);
+  const vert = i => hoverToPart(pos.getX(i), pos.getY(i), pos.getZ(i), hit.object);
+  const a = vert(face.a), b = vert(face.b), c = vert(face.c);
+  const edges = [[a, b], [b, c], [c, a]];
+  let best = null, bestD = Infinity;
+  const p = hit.point.clone().sub(mesh.position);
+  for (const [u, v] of edges) {
+    const uv = v.clone().sub(u);
+    const t = Math.max(0, Math.min(1, p.clone().sub(u).dot(uv) / (uv.lengthSq() || 1)));
+    const d = u.clone().addScaledVector(uv, t).distanceToSquared(p);
+    if (d < bestD) { bestD = d; best = [u, v]; }
+  }
+  if (!best) return null;
+  return [best[0].x, best[0].y, best[0].z, best[1].x, best[1].y, best[1].z];
+}
+
+function paintHover(hit) {
+  if (!mesh) return;
+  let key;
+  if (selectMode === 'face') key = `f:${hit.object.uuid}:${hit.faceIndex}`;
+  else if (selectMode === 'edge') {
+    const line = hoverEdgeLine(hit);
+    key = line ? `e:${line.map(v => v.toFixed(2)).join(',')}` : null;
+  } else {
+    // Point mode tracks the tip; a 0.5mm bucket keeps the marker from thrashing.
+    const p = hit.point.clone().sub(mesh.position);
+    key = `p:${(p.x * 2).toFixed(0)},${(p.y * 2).toFixed(0)},${(p.z * 2).toFixed(0)}`;
+  }
+  if (key && key === hoverKey) return;
+  hoverKey = key;
+  clearGroup(hoverGroup);
+  hoverGroup.position.copy(mesh.position);
+  if (selectMode === 'face') {
+    const tris = hoverFaceTriangles(hit);
+    if (!tris || !tris.length) return;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(tris), 3));
+    hoverGroup.add(new THREE.Mesh(g, hoverGlowMat));
+  } else if (selectMode === 'edge') {
+    const line = hoverEdgeLine(hit);
+    if (!line) return;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(line), 3));
+    const obj = new THREE.Line(g, hoverLineMat);
+    obj.renderOrder = 998;
+    hoverGroup.add(obj);
+  } else {
+    const p = hit.point.clone().sub(mesh.position);
+    const m = new THREE.Mesh(pinGeom, hoverPointMat);
+    m.position.copy(p);
+    m.scale.setScalar(Math.max(0.55, lastSize ? lastSize / 110 : 0.8));
+    m.renderOrder = 998;
+    hoverGroup.add(m);
+  }
+}
+
+function selectSummary(msg) {
+  if (msg.mode === 'face') {
+    return `Face · ${msg.area} mm2 · ${msg.normal}`;
+  }
+  if (msg.mode === 'edge') {
+    return `${msg.concave ? 'Concave edge' : 'Edge'} · ${msg.length} mm`;
+  }
+  if (msg.mode === 'point' && msg.at) {
+    return `Point · (${msg.at[0]}, ${msg.at[1]}, ${msg.at[2]})`;
+  }
+  return 'Selected';
+}
+
+function paintPick(msg) {
+  clearPickHighlight();
+  clearHover();
+  if (!mesh) return;
+  refGroup.position.copy(mesh.position);
+  if (msg.mode === 'face' && msg.face && msg.face.length) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(msg.face), 3));
+    refGroup.add(new THREE.Mesh(g, selectGlowMat));
+  } else if (msg.mode === 'edge' && msg.line && msg.line.length === 6) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(msg.line), 3));
+    const line = new THREE.Line(g, selectLineMat);
+    line.renderOrder = 999;
+    refGroup.add(line);
+  } else if (msg.mode === 'point' && msg.at) {
+    const m = new THREE.Mesh(pinGeom, selectPointMat);
+    m.position.set(msg.at[0], msg.at[1], msg.at[2]);
+    m.scale.setScalar(Math.max(0.7, lastSize ? lastSize / 90 : 1));
+    m.renderOrder = 999;
+    refGroup.add(m);
+  }
+}
+
+function selectLanded(msg) {
+  selectBusy = false;
+  stressCursor();
+  if (msg.name !== current) return;
+  if (msg.error) {
+    document.getElementById('selectsum').textContent = msg.error;
+    document.getElementById('selectpill').classList.add('open');
+    return;
+  }
+  currentPick = msg;
+  paintPick(msg);
+  document.getElementById('selectsum').textContent = selectSummary(msg);
+  document.getElementById('selectpill').classList.add('open');
+  // Browser-only: no chat iframe, so copy is how the reference leaves the page.
+  document.getElementById('selectcopy').style.display = embed ? 'none' : '';
+  if (embed) {
+    window.parent.postMessage({
+      type: 'nurb:pick',
+      part: current,
+      summary: selectSummary(msg),
+      reference: msg.reference,
+      shape_id: msg.shape_id,
+    }, '*');
+  }
+}
+
+function selectAfterPaint(name, entry) {
+  if (!currentPick) return;
+  if (name !== current || !entry || entry.shape_id !== currentPick.shape_id) {
+    clearPick();
+    if (embed) window.parent.postMessage({ type: 'nurb:pick', part: name, cleared: true }, '*');
+    return;
+  }
+  // Geometry swapped under the same shape_id: re-seat the highlight on the new mesh.
+  paintPick(currentPick);
+}
+
+document.getElementById('selectbtn').onclick = ev => {
+  if (selectOn) { selectOff(); return; }
+  stressOff();
+  selectOn = true;
+  ev.currentTarget.classList.add('on');
+  document.getElementById('selectrow').classList.add('open');
+  stressCursor();
+};
+
+for (const b of document.querySelectorAll('#selectrow [data-mode]')) {
+  b.onclick = () => {
+    selectMode = b.dataset.mode;
+    clearHover();
+    for (const o of document.querySelectorAll('#selectrow [data-mode]')) {
+      o.classList.toggle('on', o === b);
+    }
+  };
+}
+
+document.getElementById('selectclear').onclick = () => {
+  clearPick();
+  if (embed) window.parent.postMessage({ type: 'nurb:pick', part: current, cleared: true }, '*');
+};
+
+document.getElementById('selectcopy').onclick = async () => {
+  if (!currentPick || !currentPick.reference) return;
+  try {
+    await navigator.clipboard.writeText(currentPick.reference);
+    document.getElementById('selectcopy').textContent = 'copied';
+    setTimeout(() => { document.getElementById('selectcopy').textContent = 'copy'; }, 1200);
+  } catch (_) { /* clipboard denied: leave the pill as the only surface */ }
+};
+
+// The shell clears the pick after a successful send, or when the chat chip is dismissed.
+window.addEventListener('message', e => {
+  if (e.source !== window.parent || !e.data || e.data.type !== 'nurb:pick_clear') return;
+  clearPick();
+});
 
 // Dragging takes over from an absolute ?cut= position: the slider is the fraction.
 document.getElementById('cutpos').oninput = ev => { cutAt = +ev.target.value; cutMm = null; sectionUpdate(); };
@@ -1991,6 +2369,7 @@ async function paint(name, { keepCamera }) {
   framed = name;
   lastSize = size;
   stressAfterPaint(name, entry);
+  selectAfterPaint(name, entry);
   hud(parts.get(name) || entry);
   checks(name);
   params(parts.get(name) || entry);
@@ -2864,6 +3243,7 @@ function connect() {
       sharedPanel(current);
     }
     if (msg.type === 'stressed') stressLanded(msg);
+    if (msg.type === 'picked') selectLanded(msg);
     if (msg.type === 'checked') {
       parts.set(msg.name, msg);
       // The hud too: the deviation against a target mesh rides this message, the

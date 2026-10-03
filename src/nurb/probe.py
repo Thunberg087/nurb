@@ -124,6 +124,147 @@ def finding_faces(shape, ctx, findings):
     return [_on_face(rows, f.where) for f in findings]
 
 
+def face_at(rows, point):
+    """The face row a click lands on, or None.
+
+    Containment only, never nearest-centre. A click in empty space must refuse rather
+    than name the largest nearby face, because that face would then be edited for a
+    gesture that never touched it. When the click sits on a shared edge, the largest
+    of the faces that contain it wins, matching how `_on_face` breaks a tie.
+    """
+    point = Vector(*point)
+    hits = []
+    for row in rows:
+        try:
+            if row["face"].distance_to(point) <= ON_FACE:
+                hits.append(row)
+        except Exception:
+            continue
+    return max(hits, key=lambda r: r["area"]) if hits else None
+
+
+def edge_at(shape, point, limit_mm):
+    """The edge nearest a click, or None when nothing is within `limit_mm`.
+
+    Distance is the kernel's own, so a click on a curved edge still lands. The limit
+    is what keeps a face-mode miss from becoming an accidental edge pick when the mode
+    is edge: far from every edge is a miss, not the closest of a bad set.
+    """
+    point = Vector(*point)
+    best, best_d = None, None
+    for edge in shape.edges():
+        try:
+            d = edge.distance_to(point)
+        except Exception:
+            continue
+        if best_d is None or d < best_d:
+            best, best_d = edge, d
+    if best is None or best_d is None or best_d > limit_mm:
+        return None
+    return best
+
+
+def _round_point(v):
+    return (round(v.X, 2), round(v.Y, 2), round(v.Z, 2))
+
+
+def resolve_pick(shape, ctx, mode, point, tolerance=0.1):
+    """Turn a part-local click into a face, edge, or point the agent can act on.
+
+    Modes are exclusive: face refuses anything off a surface, edge refuses anything
+    farther than the click budget, and point always answers with the rounded click.
+    The triangles and line endpoints are for the viewer highlight; the summary fields
+    are what chat quotes.
+    """
+    if mode not in ("face", "edge", "point"):
+        return None
+    if isinstance(point, Vector):
+        at = (float(point.X), float(point.Y), float(point.Z))
+    else:
+        at = tuple(float(v) for v in point[:3])
+    if mode == "point":
+        return {"mode": "point", "at": tuple(round(v, 2) for v in at)}
+
+    if mode == "face":
+        rows, _ = faces(shape, ctx)
+        row = face_at(rows, at)
+        if row is None:
+            return None
+        normal = _label(row["normal"]) if row["normal"] is not None else row["kind"]
+        from . import builder
+
+        # Mesh after the face is chosen, the way findings do: OCCT attaches the
+        # triangulation to faces already held, and meshing first then asking a newly
+        # listed face returns an empty vertex list.
+        shape.mesh(float(tolerance))
+        return {
+            "mode": "face",
+            "area": round(row["area"], 1),
+            "droop": None if row["droop"] is None else round(row["droop"], 1),
+            "normal": normal,
+            "center": _round_point(row["center"]),
+            "grounded": bool(row["grounded"]),
+            "kind": row["kind"],
+            "at": tuple(round(v, 2) for v in at),
+            "triangles": [round(v, 2) for v in builder.face_triangles(row["face"])],
+        }
+
+    limit = max(2.0, 20.0 * float(tolerance))
+    edge = edge_at(shape, at, limit)
+    if edge is None:
+        return None
+    # Identity on the Edge object is unreliable across iterations; match by centre and
+    # length, which is enough for the concave flag a chat sentence needs.
+    c = edge.center()
+    length = edge.length
+    is_concave = any(
+        abs(e.length - length) < 1e-6 and (e.center() - c).length < ON_FACE
+        for e in checks.concave_edges(shape)
+    )
+    try:
+        a = edge.position_at(0)
+        b = edge.position_at(1)
+        line = (*_round_point(a), *_round_point(b))
+    except Exception:
+        line = None
+    return {
+        "mode": "edge",
+        "length": round(length, 2),
+        "center": _round_point(c),
+        "concave": is_concave,
+        "at": tuple(round(v, 2) for v in at),
+        "line": line,
+    }
+
+
+def format_pick_reference(name, pick):
+    """One plain sentence the chat can prepend, with the numbers an edit needs."""
+    if not pick:
+        return ""
+    mode = pick.get("mode")
+    if mode == "face":
+        c = pick["center"]
+        note = ", on the bed" if pick.get("grounded") else ""
+        droop = pick.get("droop")
+        droop_bit = f", droop {droop} deg" if droop is not None else ""
+        return (
+            f"On {name}, the face I selected is {pick['area']} mm2, "
+            f"normal {pick['normal']}{droop_bit}, "
+            f"center ({c[0]}, {c[1]}, {c[2]}){note}."
+        )
+    if mode == "edge":
+        c = pick["center"]
+        kind = "concave edge" if pick.get("concave") else "edge"
+        return (
+            f"On {name}, the {kind} I selected is {pick['length']} mm long, "
+            f"center ({c[0]}, {c[1]}, {c[2]})."
+        )
+    if mode == "point":
+        a = pick["at"]
+        return f"On {name}, the point I selected is ({a[0]}, {a[1]}, {a[2]})."
+    return ""
+
+
 def _face_line(row):
     normal = _label(row["normal"]) if row["normal"] is not None else row["kind"]
     value = row["droop"]

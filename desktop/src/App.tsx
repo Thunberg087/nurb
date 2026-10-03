@@ -28,6 +28,13 @@ import Setup from "./Setup";
 import Settings from "./Settings";
 import "./App.css";
 
+type PendingPick = {
+  part: string;
+  reference: string;
+  summary: string;
+  shapeId?: string;
+};
+
 type Project = {
   name: string;
   path: string;
@@ -197,6 +204,8 @@ function App() {
   // Composer text waiting for the project chat, from the viewer's "unify in chat"
   // nudge. Prefilled, never sent: the lift stays the user's call.
   const [projectSeed, setProjectSeed] = useState<string | null>(null);
+  // Geometry the viewer selected for chat: held until send or clear, never auto-sent.
+  const [pendingPick, setPendingPick] = useState<PendingPick | null>(null);
   const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>([]);
   const [agentStatusState, setAgentStatusState] = useState<"loading" | "ready" | "error">("loading");
   const agentStatusRequests = useRef(createLatestRequestGate());
@@ -378,6 +387,13 @@ function App() {
     if (seed) setProjectSeed(seed);
   }, []);
 
+  const clearPendingPick = useCallback((notifyViewer = true) => {
+    setPendingPick(null);
+    if (notifyViewer) {
+      frameRef.current?.contentWindow?.postMessage({ type: "nurb:pick_clear" }, "*");
+    }
+  }, []);
+
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(event.origin)) return;
@@ -403,6 +419,24 @@ function App() {
         focusProjectChat(
           `The parts ${names.join(", ")} repeat the same construction. If it is genuinely shared, unify it so they stay in step.`,
         );
+      }
+      // A click in select mode names geometry for this part's chat. Cleared picks
+      // and rebuilds arrive as cleared: true so a stale chip cannot outlive the mesh.
+      if (event.data?.type === "nurb:pick" && typeof event.data.part === "string") {
+        if (event.data.cleared || typeof event.data.reference !== "string") {
+          setPendingPick((prev) => (prev?.part === event.data.part ? null : prev));
+          return;
+        }
+        setPendingPick({
+          part: event.data.part,
+          reference: event.data.reference,
+          summary:
+            typeof event.data.summary === "string"
+              ? event.data.summary
+              : event.data.reference,
+          shapeId:
+            typeof event.data.shape_id === "string" ? event.data.shape_id : undefined,
+        });
       }
     };
     window.addEventListener("message", onMessage);
@@ -756,6 +790,12 @@ function App() {
     if (!active || !visiblePart) return;
     setColumns((list) => markChatSeen(list, active, visiblePart));
   }, [active, visiblePart]);
+
+  // A pick belongs to one part. Leaving that part drops the chip and the viewer highlight.
+  useEffect(() => {
+    if (!pendingPick) return;
+    if (pendingPick.part !== selectedPart) clearPendingPick();
+  }, [selectedPart, pendingPick, clearPendingPick]);
 
   // Opening a chat column waits for the project's session list, then seeds
   // the column with the conversation to resume. A column that survived a
@@ -1354,6 +1394,28 @@ function App() {
             hidden={!columnVisible(col)}
             seed={isProject && col.path === active ? projectSeed : null}
             onSeed={isProject ? () => setProjectSeed(null) : undefined}
+            pickReference={
+              !isProject &&
+              col.path === active &&
+              pendingPick &&
+              pendingPick.part === col.part
+                ? pendingPick.reference
+                : null
+            }
+            pickSummary={
+              !isProject &&
+              col.path === active &&
+              pendingPick &&
+              pendingPick.part === col.part
+                ? pendingPick.summary
+                : null
+            }
+            onClearPick={
+              !isProject && col.path === active ? () => clearPendingPick() : undefined
+            }
+            onPickConsumed={
+              !isProject && col.path === active ? () => clearPendingPick() : undefined
+            }
             onSession={(id) => chatStarted(col.path, col.part, id, agent)}
             onFresh={() => startFresh(col.path, col.part)}
             onAgent={(id, unstarted) => {

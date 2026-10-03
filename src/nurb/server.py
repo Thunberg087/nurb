@@ -1112,6 +1112,86 @@ class Server:
             {"type": "stressed", "name": name, "shape_id": shape_id, **result},
         )
 
+    # ---------- pick ----------
+    # One click in the viewer names a face, edge, or point for chat. Resolved here
+    # because the GLB has no B-rep identity: triangle hits become part-local points,
+    # and only the kept shape can say which face or edge that point sits on. The
+    # answer returns only to the tab that asked, the way stress does.
+
+    async def pick(self, msg, client=None):
+        from . import probe
+
+        name = msg.get("name")
+        entry = self.state.get(name) if isinstance(name, str) else None
+        if not entry or entry.get("shape") is None:
+            await self.reply(
+                client,
+                {"type": "picked", "name": name, "error": "no built part to pick on"},
+            )
+            return
+        mode = msg.get("mode")
+        if mode not in ("face", "edge", "point"):
+            await self.reply(
+                client,
+                {"type": "picked", "name": name, "error": "pick mode must be face, edge, or point"},
+            )
+            return
+        try:
+            at = [float(v) for v in msg["at"]][:3]
+            if len(at) != 3:
+                raise ValueError("need three coordinates")
+        except (KeyError, TypeError, ValueError):
+            await self.reply(
+                client,
+                {"type": "picked", "name": name, "error": "malformed pick request"},
+            )
+            return
+        shape_id = entry.get("shape_id")
+        path = next((p for p in builder.find_parts(self.root) if p.stem == name), None)
+        try:
+            def resolve():
+                ctx = self._context(path, entry.get("variant")) if path else None
+                if ctx is None:
+                    from . import checks
+
+                    ctx = checks.Context()
+                # Face mode remeshes inside resolve_pick after the face is chosen.
+                return probe.resolve_pick(
+                    entry["shape"], ctx, mode, at, tolerance=self.tolerance
+                )
+
+            async with self.building:
+                result = await asyncio.to_thread(resolve)
+        except Exception as exc:
+            said = str(exc) if isinstance(exc, ValueError) else f"{type(exc).__name__}: {exc}"
+            await self.reply(client, {"type": "picked", "name": name, "error": said})
+            return
+        if result is None:
+            await self.reply(
+                client,
+                {
+                    "type": "picked",
+                    "name": name,
+                    "shape_id": shape_id,
+                    "mode": mode,
+                    "error": f"no {mode} under that click",
+                },
+            )
+            return
+        reference = probe.format_pick_reference(name, result)
+        # Wire names: triangles become `face` to match the findings payload the
+        # viewer already paints; line stays for the edge highlight.
+        payload = {
+            "type": "picked",
+            "name": name,
+            "shape_id": shape_id,
+            "reference": reference,
+            **{k: v for k, v in result.items() if k != "triangles"},
+        }
+        if result.get("triangles") is not None:
+            payload["face"] = result["triangles"]
+        await self.reply(client, payload)
+
     @staticmethod
     def _machines():
         """Every shipped profile, for the picker an unnamed machine gets."""
@@ -1304,6 +1384,10 @@ class Server:
 
         if msg.get("type") == "stress":
             await self.stress(msg, client)
+            return
+
+        if msg.get("type") == "pick":
+            await self.pick(msg, client)
             return
 
         name = msg.get("name")
