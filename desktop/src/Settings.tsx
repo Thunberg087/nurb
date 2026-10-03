@@ -2,6 +2,34 @@ import { useState } from "react";
 import { open as pickFolder } from "@tauri-apps/plugin-dialog";
 import { playChime, setSoundEnabled, soundEnabled } from "./chime";
 import { AGENT_LABEL } from "./Chat";
+import type { Theme } from "./theme";
+
+function SettingsSwitch({
+  id,
+  checked,
+  onChange,
+  children,
+}: {
+  id: string;
+  checked: boolean;
+  onChange: (on: boolean) => void;
+  children: string;
+}) {
+  return (
+    <label className="settings-row" htmlFor={id}>
+      <span className="settings-row-label">{children}</span>
+      <input
+        id={id}
+        className="settings-switch-input"
+        type="checkbox"
+        role="switch"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span className="settings-switch" aria-hidden="true" />
+    </label>
+  );
+}
 
 type SettingsAgent = {
   id: string;
@@ -22,6 +50,8 @@ type Props = {
   signingIn: string | null;
   onSignIn: (id: string) => Promise<boolean>;
   onMoreAgents: () => void;
+  theme: Theme;
+  onThemeChange: (theme: Theme) => void;
   onClose: () => void;
 };
 
@@ -35,6 +65,8 @@ export default function Settings({
   signingIn,
   onSignIn,
   onMoreAgents,
+  theme,
+  onThemeChange,
   onClose,
 }: Props) {
   const [sound, setSound] = useState(soundEnabled);
@@ -90,14 +122,17 @@ export default function Settings({
             )}
           </div>
           <h3>Sound</h3>
-          <label className="settings-toggle">
-            <input
-              type="checkbox"
-              checked={sound}
-              onChange={(e) => toggleSound(e.target.checked)}
-            />
+          <SettingsSwitch id="settings-sound" checked={sound} onChange={toggleSound}>
             Play a chime when the agent finishes a long task
-          </label>
+          </SettingsSwitch>
+          <h3>Appearance</h3>
+          <SettingsSwitch
+            id="settings-light-mode"
+            checked={theme === "light"}
+            onChange={(on) => onThemeChange(on ? "light" : "dark")}
+          >
+            Light mode
+          </SettingsSwitch>
           <h3>Agents</h3>
           <p>Pick which one you chat with from the chat header.</p>
           {agentStatusState === "loading" && (

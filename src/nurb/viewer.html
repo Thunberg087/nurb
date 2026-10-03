@@ -13,6 +13,22 @@
   :root {
     --bg: #16181d; --panel: #1d2027; --line: #2b2f38;
     --text: #e6e8ec; --dim: #868d9b; --accent: #6ee7a8; --bad: #f87171; --warn: #f0c274;
+    --hover: #23272f; --active: #2c313b; --pill-hover: #262b34; --badge: #262b34;
+    --float: rgba(29, 32, 39, 0.92); --shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    --err-bg: rgba(42, 22, 24, 0.94); --err-border: #5b2b2f; --err-text: #ffb4b4;
+    --refused-bg: rgba(42, 37, 22, 0.94); --refused-border: #57481f;
+    --hud-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); --scrim: rgba(0, 0, 0, 0.45);
+    --accent-soft: rgba(110, 231, 168, 0.1);
+  }
+  :root[data-theme="light"] {
+    --bg: #e8ebf0; --panel: #f4f6f9; --line: #c8ced8;
+    --text: #16181d; --dim: #5a6270; --accent: #18a058; --bad: #dc2626; --warn: #b45309;
+    --hover: #dce1ea; --active: #cfd6e2; --pill-hover: #d0d7e2; --badge: #dce1ea;
+    --float: rgba(255, 255, 255, 0.94); --shadow: 0 4px 16px rgba(16, 24, 40, 0.12);
+    --err-bg: rgba(254, 242, 242, 0.96); --err-border: #fecaca; --err-text: #991b1b;
+    --refused-bg: rgba(255, 251, 235, 0.96); --refused-border: #fde68a;
+    --hud-shadow: 0 1px 2px rgba(255, 255, 255, 0.8); --scrim: rgba(22, 24, 29, 0.35);
+    --accent-soft: rgba(24, 160, 88, 0.12);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -52,8 +68,8 @@
      viewport. It looks like a missing scrollbar and it is a sizing bug. */
   #list { flex: 0 1 auto; min-height: 0; max-height: 38%; overflow-y: auto; padding: 6px; }
   .item { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-  .item:hover { background: #23272f; }
-  .item.active { background: #2c313b; }
+  .item:hover { background: var(--hover); }
+  .item.active { background: var(--active); }
   .item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .item .ms { color: var(--dim); font-size: 11px; }
   /* How many variants a folded part has, dim beside its build time. */
@@ -69,7 +85,7 @@
   .item.var.active .vic { color: var(--accent); }
   /* Drifted off a variant: still where the work is, so the row stays lit, and the
      accent on the name says these are its values plus some drag. */
-  .item.var.mod { background: #2c313b; }
+  .item.var.mod { background: var(--active); }
   .item.var.mod .name, .item.var.mod .vic { color: var(--accent); }
   .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
   .dot.bad { background: var(--bad); }
@@ -93,20 +109,20 @@
   #hud {
     position: absolute; left: 16px; bottom: 14px; color: var(--dim);
     font-size: 11px; pointer-events: none; line-height: 1.7;
-    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+    text-shadow: var(--hud-shadow);
   }
   #hud b { color: var(--text); font-weight: 600; }
   #hud .note { display: inline-block; max-width: 340px; }
   #err {
     position: absolute; inset: auto 16px 14px 16px; max-height: 42%; overflow: auto;
-    background: rgba(42,22,24,.94); border: 1px solid #5b2b2f; color: #ffb4b4;
+    background: var(--err-bg); border: 1px solid var(--err-border); color: var(--err-text);
     padding: 12px 14px; border-radius: 10px; white-space: pre-wrap;
     font-size: 11px; display: none;
-    box-shadow: 0 4px 16px rgba(0,0,0,.35); backdrop-filter: blur(10px);
+    box-shadow: var(--shadow); backdrop-filter: blur(10px);
   }
   /* A refusal wears the checks' warn amber, not the crash red: the part declined
      these values on purpose and the message says what to change. */
-  #err.refused { background: rgba(42,37,22,.94); border-color: #57481f; color: var(--warn); }
+  #err.refused { background: var(--refused-bg); border-color: var(--refused-border); color: var(--warn); }
   /* Spans the viewport rather than hugging the right edge, so the print row's width
      is a share of the viewer and not of the button pill above it. Children still sit
      right; the empty space passes clicks through to the geometry under it. */
@@ -129,19 +145,19 @@
   .pill {
     position: relative; /* the download menu hangs off the pill's own box */
     display: flex; align-items: center; gap: 2px; padding: 3px;
-    background: rgba(29,32,39,.9); border: 1px solid var(--line); border-radius: 9px;
-    box-shadow: 0 4px 16px rgba(0,0,0,.35); backdrop-filter: blur(10px);
+    background: var(--float); border: 1px solid var(--line); border-radius: 9px;
+    box-shadow: var(--shadow); backdrop-filter: blur(10px);
   }
   .pill .sep { width: 1px; height: 16px; background: var(--line); margin: 0 3px; flex: none; }
   .pill button {
     display: inline-flex; align-items: center; gap: 6px;
     background: none; border: none; padding: 5px 9px; border-radius: 6px; color: var(--text);
   }
-  .pill button:hover { background: #262b34; }
+  .pill button:hover { background: var(--pill-hover); }
   .pill button:focus-visible { box-shadow: 0 0 0 1px var(--accent) inset; }
   .pill button svg { color: var(--dim); }
   .pill button:hover svg { color: var(--text); }
-  .pill button.on { color: var(--accent); background: rgba(110,231,168,.1); }
+  .pill button.on { color: var(--accent); background: var(--accent-soft); }
   .pill button.on svg { color: var(--accent); }
   #download { display: contents; }
   #download button:disabled { color: var(--dim); cursor: default; }
@@ -153,15 +169,15 @@
   #dlmore svg { width: 10px; height: 10px; }
   #dlmenu { display: none; position: absolute; top: calc(100% + 5px); left: 0; min-width: 92px;
             flex-direction: column; align-items: stretch; gap: 2px; padding: 3px; z-index: 2;
-            background: rgba(29,32,39,.95); border: 1px solid var(--line); border-radius: 9px;
-            box-shadow: 0 4px 16px rgba(0,0,0,.35); backdrop-filter: blur(10px); }
+            background: var(--float); border: 1px solid var(--line); border-radius: 9px;
+            box-shadow: var(--shadow); backdrop-filter: blur(10px); }
   #dlmenu.open { display: flex; }
   /* The toolbar and the rows under it paint in document order, so without this the
      print or stress row draws over the open menu and swallows its clicks. */
   .pill:has(#dlmenu.open) { z-index: 1; }
   #dlmenu button { justify-content: flex-start; }
   #reframe { display: none; align-items: center; gap: 6px;
-             background: rgba(29,32,39,.9); box-shadow: 0 4px 16px rgba(0,0,0,.35);
+             background: var(--float); box-shadow: var(--shadow);
              backdrop-filter: blur(10px); }
   #reframe svg { color: var(--dim); }
   /* The stress row: the weight, the two-click prompt, then the answer, all in the one
@@ -185,7 +201,7 @@
                      background: linear-gradient(90deg,#2038c8,#18b89e,#f8e34c,#e83c18); }
   #stressrow button { padding: 4px 6px; color: var(--dim); background: none; border: none; }
   #stressrow button:hover { color: var(--text); }
-  #stressrow #stressgo { color: var(--accent); background: rgba(110,231,168,.1); border-radius: 6px; padding: 3px 10px; }
+  #stressrow #stressgo { color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 3px 10px; }
   /* The picking instruction floats centered over the canvas, where the click is about
      to happen, the way AR measure tools prompt. The corner pill is too far from the
      action to be read at the moment it matters. */
@@ -196,7 +212,7 @@
   #cut { display: none; align-items: center; }
   #cut.open { display: flex; }
   #cut button { padding: 4px 9px; color: var(--dim); }
-  #cut button.on { color: var(--accent); background: rgba(110,231,168,.1); }
+  #cut button.on { color: var(--accent); background: var(--accent-soft); }
   #cut input { width: 110px; margin: 0 6px 0 4px; }
   #empty, #nogl { position: absolute; inset: 0; display: grid; place-items: center;
            color: var(--dim); text-align: center; }
@@ -220,15 +236,15 @@
   #checks {
     position: absolute; top: 14px; left: 16px; max-width: 46%; max-height: 60%;
     overflow: auto; display: none; font-size: 11px; line-height: 1.6;
-    background: rgba(29,32,39,.9); border: 1px solid var(--line);
+    background: var(--float); border: 1px solid var(--line);
     border-radius: 10px; padding: 10px 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,.35); backdrop-filter: blur(10px);
+    box-shadow: var(--shadow); backdrop-filter: blur(10px);
   }
   #checks h2 { display: flex; align-items: center; gap: 6px; font-size: 11px;
                font-weight: 600; color: var(--dim); margin-bottom: 5px; letter-spacing: .04em;
                cursor: pointer; user-select: none; }
   #checks h2:hover { color: var(--text); }
-  #checks h2 .n { background: #262b34; border-radius: 8px; padding: 0 7px; }
+  #checks h2 .n { background: var(--badge); border-radius: 8px; padding: 0 7px; }
   #checks h2 .chev { width: 10px; height: 10px; margin-left: 2px; transition: transform .12s; }
   /* Folded, the card is its header: the count still says whether there is anything to
      look at, and the toolbar it was burying is clickable again (issue #103). */
@@ -236,7 +252,7 @@
   #checks.min h2 { margin-bottom: 0; }
   #checks.min h2 .chev { transform: rotate(-90deg); }
   #checks .f { display: flex; gap: 7px; padding: 2px 0; cursor: default; }
-  #checks .f:hover { color: #fff; }
+  #checks .f:hover { color: var(--text); }
   #checks .ic { flex: none; width: 12px; height: 12px; margin-top: 2.5px; }
   #checks .fail .ic { color: var(--bad); }
   #checks .warn .ic { color: #f0c274; }
@@ -260,8 +276,8 @@
   #print {
     display: none; align-items: baseline; gap: 4px 10px; flex-wrap: wrap;
     padding: 6px 11px; font-size: 11px; line-height: 1.5;
-    background: rgba(29,32,39,.9); border: 1px solid var(--line); border-radius: 9px;
-    box-shadow: 0 4px 16px rgba(0,0,0,.35); backdrop-filter: blur(10px);
+    background: var(--float); border: 1px solid var(--line); border-radius: 9px;
+    box-shadow: var(--shadow); backdrop-filter: blur(10px);
     /* 54% against the checks panel's 46%, so the two overlays anchored to opposite top
        corners can never reach each other. They did at a narrow viewer: this row grows
        leftward, and with only the viewport to stop it, it slid under the checks card.
@@ -272,7 +288,7 @@
   #print .ic { align-self: center; width: 12px; height: 12px; flex: none; color: var(--dim); }
   #print .go { display: flex; align-items: center; gap: 6px; padding: 2px 2px;
                background: none; border: none; color: var(--text); }
-  #print .go:hover { color: #fff; }
+  #print .go:hover { color: var(--text); }
   #print .go svg { color: var(--dim); }
   #print .go:hover svg { color: var(--text); }
   /* The duration is the answer, so it is the one thing sized to be read at a glance;
@@ -299,8 +315,8 @@
   #printerpick .pickmenu { display: none; position: absolute; top: calc(100% + 5px); right: 0;
                            min-width: 160px; max-height: 240px; overflow-y: auto;
                            flex-direction: column; align-items: stretch; gap: 2px; padding: 3px;
-                           z-index: 2; background: rgba(29,32,39,.95); border: 1px solid var(--line);
-                           border-radius: 9px; box-shadow: 0 4px 16px rgba(0,0,0,.35);
+                           z-index: 2; background: var(--float); border: 1px solid var(--line);
+                           border-radius: 9px; box-shadow: var(--shadow);
                            backdrop-filter: blur(10px); }
   #printerpick.open .pickmenu { display: flex; }
   #printerpick .pickmenu button { justify-content: flex-start; }
@@ -329,8 +345,8 @@
   #platecap .pickmenu { display: none; position: absolute; bottom: calc(100% + 5px); right: 0;
                         min-width: 160px; max-height: 240px; overflow-y: auto;
                         flex-direction: column; align-items: stretch; gap: 2px; padding: 3px;
-                        background: rgba(29,32,39,.95); border: 1px solid var(--line);
-                        border-radius: 9px; box-shadow: 0 4px 16px rgba(0,0,0,.35);
+                        background: var(--float); border: 1px solid var(--line);
+                        border-radius: 9px; box-shadow: var(--shadow);
                         backdrop-filter: blur(10px); }
   #platecap.open .pickmenu { display: flex; }
   #platecap .pickmenu button { justify-content: flex-start; }
@@ -347,7 +363,7 @@
   #version.update { color: var(--accent); cursor: pointer; }
   #version.update:hover { text-decoration: underline; }
   #upgrade { position: fixed; inset: 0; z-index: 2; display: none;
-             place-items: center; background: rgba(0,0,0,.45); }
+             place-items: center; background: var(--scrim); }
   #upgrade.open { display: grid; }
   #upgrade .card { background: var(--panel); border: 1px solid var(--line);
                    border-radius: 10px; padding: 16px 18px; width: 320px;
@@ -430,8 +446,8 @@
   }
   .p .v::-webkit-outer-spin-button, .p .v::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .p .v { -moz-appearance: textfield; }
-  .p .v:hover { background: #23272f; }
-  .p .v:focus { outline: none; background: #23272f; box-shadow: 0 0 0 1px var(--accent); }
+  .p .v:hover { background: var(--hover); }
+  .p .v:focus { outline: none; background: var(--hover); box-shadow: 0 0 0 1px var(--accent); }
   input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 10px; background: none; }
   .p input[type=range] { margin-top: 4px; }
   input[type=range]::-webkit-slider-runnable-track { height: 2px; background: var(--line); border-radius: 1px; }
@@ -454,7 +470,7 @@
     position: fixed; z-index: 2; max-width: 280px; display: none; pointer-events: none;
     background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
     padding: 8px 11px; font-size: 11px; line-height: 1.55; color: var(--text);
-    box-shadow: 0 4px 16px rgba(0,0,0,.35);
+    box-shadow: var(--shadow);
   }
   #write { display: none; width: 100%; margin-top: 10px; text-align: left; line-height: 1.4; }
   body.dirty #write { display: block; }
@@ -497,6 +513,11 @@
      shows. */
   body.noparts #tools { display: none; }
 </style>
+<script>
+(function () {
+  if (localStorage.getItem('nurb-theme') === 'light') document.documentElement.dataset.theme = 'light';
+})();
+</script>
 </head>
 <body>
 <!-- Nucleo icons, inlined as symbols so the viewer stays offline. Strokes are
@@ -833,6 +854,33 @@ const material = new THREE.MeshStandardMaterial({
 const EDGE_ANGLE = 25;
 const edgeMaterial = new THREE.LineBasicMaterial({
   color: 0x0c0e12, transparent: true, opacity: 0.35,
+});
+
+const THEME_SCENE = {
+  dark: { bg: 0x16181d, plateEdge: 0x3a3f4a, plateCell: 0x24272e, crease: 0x0c0e12 },
+  light: { bg: 0xe8ebf0, plateEdge: 0xa8b0bc, plateCell: 0xc4cad4, crease: 0x6a7380 },
+};
+function applyViewerTheme(mode) {
+  const light = mode === 'light';
+  if (light) document.documentElement.dataset.theme = 'light';
+  else delete document.documentElement.dataset.theme;
+  const t = THEME_SCENE[light ? 'light' : 'dark'];
+  scene.background.setHex(t.bg);
+  plateEdge.color.setHex(t.plateEdge);
+  plateCell.color.setHex(t.plateCell);
+  edgeMaterial.color.setHex(t.crease);
+}
+function setViewerTheme(mode, persist) {
+  if (persist) {
+    if (mode === 'light') localStorage.setItem('nurb-theme', 'light');
+    else localStorage.removeItem('nurb-theme');
+  }
+  applyViewerTheme(mode);
+}
+setViewerTheme(localStorage.getItem('nurb-theme') === 'light' ? 'light' : 'dark', false);
+window.addEventListener('message', e => {
+  if (e.source !== window.parent || !e.data || e.data.type !== 'nurb:theme') return;
+  setViewerTheme(e.data.theme === 'light' ? 'light' : 'dark', true);
 });
 
 // ---- target ghost ----

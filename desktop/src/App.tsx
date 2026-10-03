@@ -26,6 +26,13 @@ import { partMessage, type PartConfigurationRequest } from "./partMessages";
 import { createPartRecovery } from "./partRecovery";
 import Setup from "./Setup";
 import Settings from "./Settings";
+import {
+  postThemeToViewer,
+  readTheme,
+  syncNativeTheme,
+  writeTheme,
+  type Theme,
+} from "./theme";
 import "./App.css";
 
 type Project = {
@@ -275,6 +282,7 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [showAgentsHelp, setShowAgentsHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => readTheme());
   const [showGeminiKey, setShowGeminiKey] = useState(false);
   const geminiKeyResolver = useRef<((key: string | null) => void) | null>(null);
   const [defaultProjectsFolder, setDefaultProjectsFolder] = useState<string | null>(null);
@@ -287,6 +295,15 @@ function App() {
   // restart is instant. `ready` resolves false if the background download
   // failed, in which case installing downloads again.
   const found = useRef<{ update: Update; ready: Promise<boolean> } | null>(null);
+
+  useEffect(() => {
+    void syncNativeTheme(theme);
+  }, [theme]);
+
+  const changeTheme = useCallback((next: Theme) => {
+    writeTheme(next);
+    setTheme(next);
+  }, []);
 
   useEffect(() => {
     invoke<boolean>("provision_status")
@@ -972,6 +989,11 @@ function App() {
   }, [frame, loadedFrame, selectedPart, active, variantRequestVersion]);
   useEffect(postPart, [postPart]);
 
+  useEffect(() => {
+    if (!frame || loadedFrame?.key !== frame.key) return;
+    postThemeToViewer(frameRef.current, frame.key, theme);
+  }, [frame, loadedFrame, theme]);
+
   if (ready !== true) {
     // The status check settles in well under a second; until then the window
     // shows the app background, never a flash of the setup screen.
@@ -1298,6 +1320,8 @@ function App() {
             setShowSettings(false);
             setShowAgentsHelp(true);
           }}
+          theme={theme}
+          onThemeChange={changeTheme}
           onClose={() => setShowSettings(false)}
         />
       )}
